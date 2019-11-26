@@ -8,23 +8,29 @@ using Microsoft.EntityFrameworkCore;
 using Bookshelf.Data;
 using Bookshelf.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace Bookshelf.Controllers
 {
-    [Authorize]
+    
     public class AuthorsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AuthorsController(ApplicationDbContext context)
+        public AuthorsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Authors
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Authors.ToListAsync());
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            var userAuthors = await _context.Authors.Where(a => a.UserId == user.Id)
+                                            .ToListAsync();
+            return View(userAuthors);
         }
 
         // GET: Authors/Details/5
@@ -46,8 +52,9 @@ namespace Bookshelf.Controllers
         }
 
         // GET: Authors/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            
             return View();
         }
 
@@ -58,8 +65,11 @@ namespace Bookshelf.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,FirstName,LastName,Penname,PreferredGenre")] Author author)
         {
+            ModelState.Remove("UserId");
             if (ModelState.IsValid)
             {
+                var user = await _userManager.GetUserAsync(HttpContext.User);
+                author.UserId = user.Id;
                 _context.Add(author);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

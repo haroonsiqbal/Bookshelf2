@@ -27,6 +27,8 @@ namespace Bookshelf.Models
         public int AuthorId { get; set; }
 
         public Author Author { get; set; }
+        [Required]
+        public string OwnerId { get; set; }
         public ApplicationUser Owner { get; set; } 
 
     }

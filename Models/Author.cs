@@ -21,7 +21,8 @@ namespace Bookshelf.Models
         public string Penname { get; set; }
         public string PreferredGenre { get; set; }
         public List<Book> Books { get; set; }
-
+        [Required]
+        public string UserId { get; set; }
         public ApplicationUser User { get; set; }
     }
 }
